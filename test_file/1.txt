@@ -1,0 +1,12 @@
+Argument: ~B, A->B
+Conclusion: ~A
+
+Proof.
+
+1.  ~B, A->B, A !|- A [prem]
+2.  ~B, A->B, A !|- A->B [prem]
+3.  ~B, A->B, A !|- B [imple,1,2]
+4.  ~B, A->B, A !|- ~B [prem]
+5.  ~B, A->B, A !|- ~A [ni,3,1]
+
+Qed.
