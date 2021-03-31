@@ -70,34 +70,81 @@ conjunctiveNorm p = map helper $ filter (not . (`eval` p)) (substs p)
           helper ((s, False):xs) = (s, True) : helper xs
           helper [] = []
 
--- Library for prove
--- (aurgument::[Prop], Conclusion::Prop, proveStep::[([Prop], Prop, rule, [])])
+-- ********************************************
+-- 证明过程验证库函数
+-- (aurgument::[Prop], Conclusion::Prop, proveStep::[(Prop, rule, [])])
 
-prem :: [Prop] -> Prop -> Bool
-prem arg p = p `elem` arg
-
-imple :: Prop -> Prop -> Prop -> Bool 
-imple (Imply _p1 _p2) p1 p2 = (isEquiv _p1 p1) && (isEquiv _p2 p2) 
-imple p1 (Imply _p1 _p2) p2 = (isEquiv _p1 p1) && (isEquiv _p2 p2) 
-imple _ _ _ = False
-
-ni :: [Prop] -> Prop -> Prop -> Prop -> Bool 
-ni arg p1 p2 p3 = (isEquiv p1 $ Not p2) && any (isEquiv $ Not p3) arg
-
-validate :: ([Prop], Prop, [([Prop], Prop, String, [Int])]) -> Bool 
-validate (arg, conclusion, steps) = conclusion == (\(_, a, _, _) -> a) (last steps)
+validate :: ([Prop], Prop, [(Prop, String, [Int])]) -> Bool 
+validate (arg, conclusion, steps) = conclusion == (\(a, _, _) -> a) (last steps)
                                     && validateSteps arg steps [] 0
 
-validateSteps :: [Prop] -> [([Prop], Prop, String, [Int])] -> [Prop] -> Int -> Bool 
+validateSteps :: [Prop] -> [(Prop, String, [Int])] -> [Prop] -> Int -> Bool 
 validateSteps arg steps result k 
     | k == length steps = True 
     | otherwise = validateStep arg curStep result
                   && validateSteps arg steps (result++[curConclusion]) (k+1)
     where curStep = steps!!k 
-          curConclusion = (\(_, a, _, _) -> a) curStep 
+          curConclusion = (\(a, _, _) -> a) curStep 
 
-validateStep :: [Prop] -> ([Prop], Prop, String, [Int]) -> [Prop] -> Bool 
-validateStep arg (pre, conclusion, rule, param) result 
-    | rule == "prem" = prem pre conclusion
+validateStep :: [Prop] -> (Prop, String, [Int]) -> [Prop] -> Bool 
+validateStep arg (conclusion, rule, param) result 
+    | rule == "prem" = prem [Const True] conclusion
     | rule == "imple" = imple (result!!((param!!0)-1)) (result!!((param!!1)-1)) conclusion
-    | rule == "ni" = ni pre (result!!((param!!0)-1)) (result!!((param!!1)-1)) conclusion
+    | rule == "ni" = ni [Const True] (result!!((param!!0)-1)) (result!!((param!!1)-1)) conclusion
+
+-- 推导规则
+
+prem :: [Prop] -> Prop -> Bool
+prem arg p = p `elem` arg
+
+preme :: Prop -> Prop -> Prop -> Bool 
+preme (Imply pa pb) (Imply qa qb) t = (isEquiv pa (Not pb)) && (pb == qb) && (t == pb)
+preme _ _ _ = False
+
+ti :: Prop -> Bool 
+ti (Const True) = True 
+ti _ = False 
+
+fi :: Prop -> Bool 
+fi (Not (Const False)) = True 
+fi _ = False
+
+ori :: Prop -> Prop -> Bool 
+ori a (Or b c) = (a==b) || (a==c)
+ori _ _ = False 
+
+ore :: Prop -> Prop -> Prop -> Bool 
+ore (Imply a b) (Imply c d) e = (b==d) && ((Imply (Or a c) b)==e)
+ore _ _ _ = False 
+
+andi :: Prop -> Prop -> Prop -> Bool 
+andi a b (And c d) = ((a==c) && (b==d)) || ((a==d) && (b==c))
+andi _ _ _ = False 
+
+ande :: Prop -> Prop -> Bool 
+ande (And a b) c = (a==c) || (b==c)
+ande _ _ = False 
+
+imple :: Prop -> Prop -> Prop -> Bool
+imple a (Imply b c) d = (a==b) && (c==d)
+imple _ _ _ = False 
+
+ni :: Prop -> Prop -> Prop -> Bool
+ni (Imply a b) (Not c) (Not d) = (c==b) && (a==d)
+ni _ _ _ = False 
+
+nni :: Prop -> Prop -> Bool 
+nni a (Not (Not b)) = a==b 
+nni _ _ = False
+
+nne :: Prop -> Prop -> Bool
+nne (Not (Not a)) b = a==b 
+nne _ _ = False 
+
+equivi :: Prop -> Prop -> Prop -> Bool
+equivi (Imply a b) (Imply c d) (BiImply e f) = (a==d) && (b==c) && (((e==a) && (f==b)) || ((e==b) && (f==a)))
+equivi _ _ _ = False 
+
+equive :: Prop -> Prop -> Bool
+equive (BiImply a b) (Imply c d) = ((a==c) && (b==d)) || ((a==d) && (b==c)) 
+equive _ _ = False 

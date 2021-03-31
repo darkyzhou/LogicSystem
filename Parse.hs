@@ -16,7 +16,7 @@ singleProp = spaces *>
     (quotedProp <|> propNot <|> varProp) <*
     spaces
 
-quotedProp = char '(' *> prop <* char ')' 
+quotedProp = between (char '(') (char ')') prop 
 
 propNot = char '~' *> (Not <$> singleProp)
 
@@ -44,19 +44,23 @@ eol =   try (string "\n\r")
 
 -- (aurgument::[Prop], Conclusion::Prop, proveStep::[([Prop], Prop, rule, [])])
 
-prove = do 
-    spaces *> string "Argument:"
-    ar <- argument 
-    spaces *> string "Conclusion:"
-    con <- conclusion 
-    spaces *> string "Proof."
-    prove <- proveSteps <?> "fail in prove parse."
-    spaces *> string "Qed."
-    return (ar, con, prove)
+prove = (,,) 
+    <$> (spaces *> string "Argument:" *> argument) 
+    <*> (spaces *> string "Conclusion:" *> conclusion) 
+    <*> (spaces *> string "Proof:" *> many1 (proveStep <* spaces))
+    -- <* (spaces *> string "Qed.")
 
 argument = sepBy prop (char ',')
 
 conclusion = prop 
+
+-- (结论，（规则，[前件]）)
+proveStep = (,,)
+    <$> (spaces *> many1 digit *> char '.' *> prop) 
+    <* char '['
+    <*> many1 (noneOf ",]")
+    <*> (map (\x -> read x::Int) <$> many (char ',' *> many1 digit))
+    <* char ']'
 
 proveSteps = count 5 proveStep 
     where proveStep = do 

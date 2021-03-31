@@ -38,4 +38,3 @@ testProveValidate = do
         Left e -> do putStrLn "Error parsing input:"
                      print e 
         Right p -> do print p
-                      print $ validate p
