@@ -54,7 +54,7 @@ qsort [] = []
 -- 先对目标命题进行解析，再求原命题的最大项，并与解析结果比较
 conjunctiveNormValidate :: Prop -> Prop -> Bool 
 conjunctiveNormValidate p dp = 
-    (not $ elem Nothing dpItems) && (itemCompare pItems $ map (\(Just s) -> s) dpItems)
+    notElem Nothing dpItems && itemCompare pItems (map (\(Just s) -> s) dpItems)
     where pItems = conjunctiveNorm p
           dpItems = map (propToSubst . disjuncResolve) $ conjuncResolve dp
           propToSubst (x:xs) = case x of
@@ -130,9 +130,9 @@ validateStep arg (conclusion, rule, param) result
     
     
 getParam result param k 
-    | (idx>=0) && (idx<length result) = Just (result !! idx)
+    | (k<length param) && (idx>=0) && (idx<length result) = Just (result !! idx)
     | otherwise = Nothing 
-    where idx = param !! (k-1)
+    where idx = (param!!k) - 1 
 
 -- 推导规则
 

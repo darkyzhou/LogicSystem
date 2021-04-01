@@ -1,10 +1,8 @@
-Argument: ~B, A->B
-Conclusion: ~A
+Argument: A, A->B
+Conclusion: B
 
 Proof:
 
 1.  A [prem]
 2.  A->B [prem]
 3.  B [imple,1,2]
-4.  ~B [prem]
-5.  ~A [ni,3,1]

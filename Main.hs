@@ -2,6 +2,9 @@ import Func
 import Prop
 import Parse
 import Text.ParserCombinators.Parsec 
+import System.Environment
+import System.Exit
+import Text.Printf
 
 testDisjunc = do 
     let s1 = "(~(A->B)) /\\ ((~B) <-> C) \n"
@@ -38,3 +41,103 @@ testProveValidate = do
         Left e -> do putStrLn "Error parsing input:"
                      print e 
         Right p -> do print p
+                      print $ validate p
+
+
+main = do 
+    args <- getArgs
+    case head args of 
+        "equiv" -> equivJudge 
+        "dnorm" -> normJudge disjunctiveNormValidate "the principal disjunctive normal form"
+        "cnorm" -> normJudge conjunctiveNormValidate "the principal conjunctive normal form"
+        "validate" -> validateJudge 
+        "help" -> helpInfo
+        s -> syntaxError s
+
+-- 读取两个命题，判断是否等价
+equivJudge = do 
+    -- read first proposition
+    putStrLn "Please input the first proposition:\n" 
+    s1 <- getLine 
+    let p1 = parse prop "(stdin)" s1 
+    case p1 of 
+        (Left e) -> do 
+            putStrLn "Error parsing a proposition!\n"
+            print e 
+            exitSuccess 
+        _ -> do return ()
+    -- read second proposition
+    putStrLn "Please input the second proposition:\n" 
+    s2 <- getLine 
+    let p2 = parse prop "(stdin)" s2 
+    case p2 of 
+        (Left e) -> do 
+            putStrLn "Error parsing a proposition!\n"
+            print e 
+            exitSuccess 
+        _ -> do return ()
+    -- call function 
+    let (Right a) = p1
+    let (Right b) = p2
+    if isEquiv a b then 
+        putStrLn "True: The given proposition IS equivalent."
+    else 
+        putStrLn "FALSE: The given proposition IS NOT equivalent."
+
+-- 读取两个命题，判断第二个是不是第一个的主析取（合取）范式
+normJudge func descrip = do 
+    -- read first proposition
+    putStrLn "Please input the first proposition:\n" 
+    s1 <- getLine 
+    let p1 = parse prop "(stdin)" s1 
+    case p1 of 
+        (Left e) -> do 
+            putStrLn "Error parsing a proposition!\n"
+            print e 
+            exitSuccess 
+        _ -> do return ()
+    -- read second proposition
+    putStrLn "Please input the second proposition:\n" 
+    s2 <- getLine 
+    let p2 = parse prop "(stdin)" s2 
+    case p2 of 
+        (Left e) -> do 
+            putStrLn "Error parsing a proposition!\n"
+            print e 
+            exitSuccess 
+        _ -> do return ()
+    -- call function 
+    let (Right a) = p1
+    let (Right b) = p2
+    if func a b then 
+        putStrLn $ printf "TRUE: The 2nd proposition IS %s of the 1st proposition." descrip
+    else 
+        putStrLn $ printf "FALSE: The 2nd proposition IS NOT %s of the 1st proposition." descrip
+
+-- 读取一个文件，解析为证明过程，并判断是否正确
+validateJudge = do 
+    putStrLn "Please input the file path:\n"
+    path <- getLine 
+    text <- readFile path 
+    case parse prove path text  of 
+        (Left e) -> do 
+            putStrLn "Error parsing a proof!\n"
+            print e 
+            exitSuccess 
+        (Right parsedText) -> do 
+            case validate parsedText of 
+                (True, _) -> do 
+                    putStrLn $ printf "TRUE: The proof in \"%s\" IS valid." path 
+                (False, msg) -> do 
+                    putStrLn $ printf "FALSE: The proof in \"%s\" IS NOT valid.\n%s" path msg 
+
+syntaxError s = do 
+    putStrLn $ printf "Unknwon command: %s" s
+
+helpInfo = putStrLn
+  "Usage: logic command\n\
+  \\n\
+  \logic equiv      Check if the given two propositions are equivalent\n\
+  \logic dnorm     Check if the 2nd proposition is the principal conjunctive normal form of the 1st one\n\
+  \logic cnorm        Check if the 2nd proposition is the principal disjunctive normal form of the 1st one\n\
+  \logic validate       Check if the given proof is valid\n"
