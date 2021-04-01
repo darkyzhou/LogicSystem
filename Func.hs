@@ -1,6 +1,7 @@
 module Func where
 
 import Prop 
+import Text.Printf
 
 -- **********************************
 -- 主析取范式验证库函数
@@ -74,23 +75,64 @@ conjunctiveNorm p = map helper $ filter (not . (`eval` p)) (substs p)
 -- 证明过程验证库函数
 -- (aurgument::[Prop], Conclusion::Prop, proveStep::[(Prop, rule, [])])
 
-validate :: ([Prop], Prop, [(Prop, String, [Int])]) -> Bool 
-validate (arg, conclusion, steps) = conclusion == (\(a, _, _) -> a) (last steps)
-                                    && validateSteps arg steps [] 0
+validate :: ([Prop], Prop, [(Prop, String, [Int])]) -> (Bool, String) 
+validate (arg, conclusion, steps) = if conclusion /= (\(a, _, _) -> a) (last steps) then (False, "Cannot get the conclusion from the final step.")
+                                    else validateSteps arg steps [] 0
 
-validateSteps :: [Prop] -> [(Prop, String, [Int])] -> [Prop] -> Int -> Bool 
+validateSteps :: [Prop] -> [(Prop, String, [Int])] -> [Prop] -> Int -> (Bool, String) 
 validateSteps arg steps result k 
-    | k == length steps = True 
-    | otherwise = validateStep arg curStep result
-                  && validateSteps arg steps (result++[curConclusion]) (k+1)
+    | k == length steps = (True, "") 
+    | otherwise = case validateStep arg curStep result of 
+                (True, "")   -> validateSteps arg steps (result++[curConclusion]) (k+1)
+                (False, msg) -> (False, printf "Fail in step %d. The reason is\n%s" (k+1) msg)
     where curStep = steps!!k 
           curConclusion = (\(a, _, _) -> a) curStep 
 
-validateStep :: [Prop] -> (Prop, String, [Int]) -> [Prop] -> Bool 
+validateStep :: [Prop] -> (Prop, String, [Int]) -> [Prop] -> (Bool, String) 
 validateStep arg (conclusion, rule, param) result 
-    | rule == "prem" = prem [Const True] conclusion
-    | rule == "imple" = imple (result!!((param!!0)-1)) (result!!((param!!1)-1)) conclusion
-    | rule == "ni" = ni [Const True] (result!!((param!!0)-1)) (result!!((param!!1)-1)) conclusion
+    | rule == "prem" = if not $ null param then (False, printf "\"%s\": need no parameter, but found %d." rule (length param))
+                    else if prem arg conclusion then (True, "")
+                    else (False, "\"prem\": cannot deduce the given proposition.")
+    | rule == "preme" = func2 preme
+    | rule == "ti" = func0 ti
+    | rule == "fi" = func0 fi
+    | rule == "ori" = func1 ori
+    | rule == "ore" = func2 ore
+    | rule == "andi" = func2 andi 
+    | rule == "ande" = func1 ande 
+    | rule == "imple" = func2 imple 
+    | rule == "ni" = func2 ni 
+    | rule == "nni" = func1 nni 
+    | rule == "nne" = func1 nne
+    | rule == "equivi" = func2 equivi 
+    | rule == "equive" = func1 equive
+    | otherwise = (False, printf "Unknown rule: \"%s\"" rule)
+
+    where p1 = getParam result param 0
+          p2 = getParam result param 1
+          biCall func p1 p2 c = func p1 p2 c || func p2 p1 c
+          func0 f 
+            | not $ null param = (False, printf "\"%s\": need no parameter, but found %d." rule (length param))
+            | f conclusion = (True, "")
+            | otherwise = (False, printf "\"%s\": found invalid parameter(s)." rule)
+          func1 f 
+            | length param /= 1 = (False, printf "\"%s\": need 1 parameter, but found %d." rule (length param))
+            | otherwise = case p1 of 
+                (Just a) -> if f a conclusion then (True, "") 
+                            else (False, printf "\"%s\": cannot deduce the given proposition." rule)
+                _        -> (False, printf "\"%s\": found invalid parameter(s)." rule)
+          func2 f 
+            | length param /= 2 = (False, printf "\"%s\": need 2 parameters, but found %d." rule (length param))
+            | otherwise = case (p1, p2) of 
+                (Just a, Just b) -> if biCall f a b conclusion then (True, "") 
+                                    else (False, printf "\"%s\": cannot deduce the given proposition." rule)
+                _                -> (False, printf "\"%s\": found invalid parameter(s)." rule)
+    
+    
+getParam result param k 
+    | (idx>=0) && (idx<length result) = Just (result !! idx)
+    | otherwise = Nothing 
+    where idx = param !! (k-1)
 
 -- 推导规则
 
@@ -98,7 +140,7 @@ prem :: [Prop] -> Prop -> Bool
 prem arg p = p `elem` arg
 
 preme :: Prop -> Prop -> Prop -> Bool 
-preme (Imply pa pb) (Imply qa qb) t = (isEquiv pa (Not pb)) && (pb == qb) && (t == pb)
+preme (Imply pa pb) (Imply qa qb) t = (pa == Not pb) && (pb == qb) && (t == pb)
 preme _ _ _ = False
 
 ti :: Prop -> Bool 
@@ -118,7 +160,7 @@ ore (Imply a b) (Imply c d) e = (b==d) && ((Imply (Or a c) b)==e)
 ore _ _ _ = False 
 
 andi :: Prop -> Prop -> Prop -> Bool 
-andi a b (And c d) = ((a==c) && (b==d)) || ((a==d) && (b==c))
+andi a b (And c d) = (a==c) && (b==d)
 andi _ _ _ = False 
 
 ande :: Prop -> Prop -> Bool 
@@ -142,7 +184,7 @@ nne (Not (Not a)) b = a==b
 nne _ _ = False 
 
 equivi :: Prop -> Prop -> Prop -> Bool
-equivi (Imply a b) (Imply c d) (BiImply e f) = (a==d) && (b==c) && (((e==a) && (f==b)) || ((e==b) && (f==a)))
+equivi (Imply a b) (Imply c d) (BiImply e f) = (a==d) && (b==c) && (e==a) && (f==b)
 equivi _ _ _ = False 
 
 equive :: Prop -> Prop -> Bool

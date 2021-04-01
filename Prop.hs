@@ -29,8 +29,8 @@ instance Show Prop where
     show (Not (Const t)) = "~" ++ show t
     show (Not (Var x))    = "~" ++ x
     show (Not p) = "~" ++ show p
-    show (And a b) = "(" ++ show a ++ " /\\ " ++ show b ++")"
-    show (Or a b) =  "(" ++ show a ++ " \\/ " ++ show b ++")"
+    show (And a b) = "(" ++ show a ++ "∧" ++ show b ++")"
+    show (Or a b) =  "(" ++ show a ++ "∨" ++ show b ++")"
     show (Imply a b) =  "(" ++ show a ++ "->" ++ show b ++")"
     show (BiImply a b) =  "(" ++ show a ++ "<->" ++ show b ++")"
 
