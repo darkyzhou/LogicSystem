@@ -103,6 +103,7 @@ validateStep steps (argument, conclusion, rule, param)
     | rule == "impli" = func1 impli
     | rule == "imple" = func2 imple 
     | rule == "ni" = func2 ni 
+    | rule == "ne" = func2 ne
     | rule == "nni" = func1 nni 
     | rule == "nne" = func1 nne
     | rule == "equivi" = func2 equivi 
@@ -185,6 +186,9 @@ imple (pre1, c1) (pre2, c2) pre c = (pre1==pre) && (pre2==pre) && (Imply c1 c ==
 
 ni :: ([Prop], Prop) -> ([Prop], Prop) -> [Prop] -> Prop -> Bool 
 ni (pre1, c1) (pre2, c2) pre c = (pre1==pre2) && (Not c1 == c2) && (Not (last pre1) == c)
+
+ne :: ([Prop], Prop) -> ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+ne (pre1, c1) (pre2, c2) pre c = (pre1==pre2) && (pre1==pre) && (Not c1 == c2)
 
 nni :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
 nni (pre1, c1) pre c = Not (Not c1) == c
