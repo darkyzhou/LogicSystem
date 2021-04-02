@@ -1,0 +1,38 @@
+Argument:  a, b, ~b
+Conclusion:  a
+
+Proof:
+
+1.	a, b			|-	a		[prem]
+2.	a, b, c			|-	a	 	[premi 1]
+3.	a, ~b			|- 	a		[prem]
+4. 	a			|- 	a		[preme 1 3]
+5. 	a			|- 	T		[ti]
+6.	a			|- 	~F		[fi]
+7.	a			|- 	T \/ z		[ori 5]
+8.	a			|- 	z \/ T		[ori 5]
+9.	a, b\/~b			|- 	a		[ore 1 3]
+10.	b, ~b, a			|-	b		[prem]
+11.	b, ~b, a			|-	~b		[prem]
+12.	b, ~b			|-	~a		[ni 10 11]
+13.	b, ~b, a			|- 	w		[ne 10 11]
+14.	a, b			|- 	~~a		[nni 1]
+15.	a, b			|-	a		[nne 14]
+16.	a, b, a			|-	b		[prem]
+17.	a, b, b			|-	a		[prem]
+18.	a, b			|-	a <-> b		[equivi 16 17]
+19.	a, b			|- 	a -> b		[equive 18]
+20.	a, b			|- 	b -> a		[equive 18]
+21.	~(a\/b)			|-	~(a\/b)		[prem]
+22.	~(a\/b)			|-	~a /\ ~b		[morgani 21]
+23. 	~(a/\b)			|-	~(a/\b)		[prem]
+24.	~(a/\b)			|-	~a \/ ~b		[morgani 23]
+25.	~a /\ ~b			|-	~a /\ ~b		[prem]
+26.	~a /\ ~b			|-	~(a\/b)		[morgane 25]
+27.	~a \/ ~b			|-	~a \/ ~b		[prem]
+28.	~a \/ ~b			|-	~(a/\b)		[morgane 27]
+29.	a, b, ~b			|-	a		[prem]
+
+
+
+					

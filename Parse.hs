@@ -56,8 +56,8 @@ conclusion = prop
 
 -- (前件，后件，规则，[参数])
 proveStep = (,,,)
-    <$> (spaces *> many1 digit *> char '.' *> many prop) 
-    <* string "|-" 
+    <$> (spaces *> many1 digit *> char '.' *> argument) 
+    <* spaces <* string "|-" 
     <*> prop 
     <* char '['
     <*> many1 (noneOf " ]")

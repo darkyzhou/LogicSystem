@@ -84,7 +84,7 @@ validate (arg, conclusion, steps) = if (arg, conclusion) /= (\(a, b, _, _) -> (a
 validateSteps :: [([Prop], Prop, String, [Int])] -> Int -> (Bool, String) 
 validateSteps steps k 
     | k == length steps = (True, "") 
-    | otherwise = case validateStep (take (k-1) steps) curStep of 
+    | otherwise = case validateStep (take k steps) curStep of 
                 (True, "")   -> validateSteps steps (k+1)
                 (False, msg) -> (False, printf "Fail in validating step %d.\n%s" (k+1) msg)
     where curStep = steps!!k 
@@ -108,6 +108,11 @@ validateStep steps (argument, conclusion, rule, param)
     | rule == "nne" = func1 nne
     | rule == "equivi" = func2 equivi 
     | rule == "equive" = func1 equive
+    | rule == "implyToOr" = func1 implyToOr 
+    | rule == "orToImply" = func1 orToImply
+    | rule == "orThree" = func2 orThree
+    | rule == "morgane" = func1 morgane
+    | rule == "morgani" = func1 morgani
     | otherwise = (False, printf "Unknown rule: \"%s\"" rule)
 
     where p1 = getParam steps param 0
@@ -132,10 +137,12 @@ validateStep steps (argument, conclusion, rule, param)
     
     
 getParam steps param k 
-    | (k<length param) && (idx>=0) && (idx<length steps) = Just ((\(a, b, _, _) -> (a, b))(steps !! idx))
+    | (k<length param) && (idx>=0) && (idx<length steps) = Just ((\(a, b, _, _) -> (a, b)) (steps !! idx))
     | otherwise = Nothing 
     where idx = (param!!k) - 1 
 
+
+-- ****************************************************
 -- 推导规则
 
 prem :: [Prop] -> Prop -> Bool
@@ -207,3 +214,27 @@ equivi (pre1, c1) (pre2, c2) pre c = (ip1==ip2) && (lp1==c2) && (lp2==c1) && (ip
 equive :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
 equive (pre1, BiImply a b) pre c = (pre1==pre) && ((Imply a b == c) || (Imply b a == c))
 equive _ _ _ = False
+
+implyToOr :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+implyToOr (pre1, Imply a b) pre c = (pre1==pre) && ((Or (Not a) b == c) || (Or b (Not a) == c))
+implyToOr _ _ _ = False 
+
+orToImply :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+orToImply (pre1, Or (Not a) b) pre (Imply c d) = (pre1==pre) && (a==c) && (b==d)
+orToImply (pre1, Or b (Not a)) pre (Imply c d) = (pre1==pre) && (a==c) && (b==d)
+orToImply _ _ _ = False 
+
+orThree :: ([Prop], Prop) -> ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+orThree (pre1, Or (Not a) b) (pre2, c) pre d = (pre1==pre2) && (pre1==pre) && (a==c) && (b==d)
+orThree (pre1, Or b (Not a)) (pre2, c) pre d = (pre1==pre2) && (pre1==pre) && (a==c) && (b==d)
+orThree _ _ _ _ = False 
+
+morgani :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+morgani (pre1, Not (Or a b)) pre c = (pre1==pre) && (And (Not a) (Not b) == c)
+morgani (pre1, Not (And a b)) pre c = (pre1==pre) && (Or (Not a) (Not b) == c)
+morgani _ _ _ = False 
+
+morgane :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+morgane (pre1, c) pre (Not (Or a b)) = (pre1==pre) && (And (Not a) (Not b) == c)
+morgane (pre1, c) pre (Not (And a b)) = (pre1==pre) && (Or (Not a) (Not b) == c)
+morgane _ _ _ = False 
