@@ -1,8 +1,0 @@
-Argument: A, A->B
-Conclusion: B
-
-Proof:
-
-1.  A [prem]
-2.  A->B [prem]
-3.  B [imple,1,2]

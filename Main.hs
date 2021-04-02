@@ -1,3 +1,4 @@
+module Main where 
 import Func 
 import Prop
 import Parse
@@ -6,50 +7,13 @@ import System.Environment
 import System.Exit
 import Text.Printf
 
-testDisjunc = do 
-    let s1 = "(~(A->B)) /\\ ((~B) <-> C) \n"
-    let s2 = "~B /\\ A /\\ C "
-    case parse (many prop) "(stdin)" (s1++s2) of
-        Left e -> do putStrLn "Error parsing input:"
-                     print e 
-        Right [p1, p2] -> do print p1
-                             print p2
-                             print $ disjunctiveNormValidate p1 p2
-
-testConjunc = do 
-    let s1 = "(~(A->B)) /\\ ((~B) <-> C) \n"
-    let s2 = "((~A \\/ (~B \\/ ~C)) /\\ ((~A \\/ (~B \\/ C)) /\\ ((~A \\/ (B \\/ C)) /\\ ((A \\/ (~B \\/ ~C)) /\\ ((A \\/ (~B \\/ C)) /\\ ((A \\/ (B \\/ ~C)) /\\ (A \\/ (B \\/ C))))))))"
-    case parse (many prop) "(stdin)" (s1++s2) of
-        Left e -> do putStrLn "Error parsing input:"
-                     print e 
-        Right [p1, p2] -> do print p1
-                             print p2
-                             print $ conjunctiveNormValidate p1 p2
-
-testProveParse = do 
-    let fileName = "test_file/1.txt"
-    str <- readFile fileName
-    case parse prove fileName str of
-        Left e -> do putStrLn "Error parsing input:"
-                     print e 
-        Right p -> do print p
-
-testProveValidate = do 
-    let fileName = "test_file/1.txt"
-    str <- readFile fileName
-    case parse prove fileName str of
-        Left e -> do putStrLn "Error parsing input:"
-                     print e 
-        Right p -> do print p
-                      print $ validate p
-
 
 main = do 
     args <- getArgs
     if null args then 
-        putStrLn "ERROR: found no argument."
+        putStrLn "ERROR: found no argument.\n"
     else if (head args /= "help") && (length args < 2) then 
-        putStrLn $ printf "ERROR: need 2 arguments, but found %d." (length args)
+        putStrLn $ printf "ERROR: need 2 arguments, but found %d.\n" (length args)
     else 
         case head args of 
             "equiv" -> equivJudge (args!!1)
@@ -61,59 +25,60 @@ main = do
 
 -- 读取两个命题，判断是否等价
 equivJudge path = do 
-    putStrLn "Please input the first proposition:\n" 
     text <- readFile path 
     case parse (many prop) path text of 
         (Left e) -> do 
-            putStrLn "Error: fail in parsing the text into two propositions!\n"
+            putStrLn "Error: fail in parsing the text into two propositions!"
             print e 
+            putStrLn ""
             exitSuccess 
         (Right ps) -> 
             if length ps < 2 then 
-                putStrLn $ printf "ERROR: need two propositions, but found %d." (length ps)
+                putStrLn $ printf "ERROR: need two propositions, but found %d.\n" (length ps)
             else do 
                 let (a:(b:_)) = ps
                 if isEquiv a b then 
-                    putStrLn "True: The given proposition IS equivalent."
+                    putStrLn "True: The given proposition IS equivalent.\n"
                 else 
-                    putStrLn "FALSE: The given proposition IS NOT equivalent."
+                    putStrLn "FALSE: The given proposition IS NOT equivalent.\n"
 
 -- 读取两个命题，判断第二个是不是第一个的主析取（合取）范式
 normJudge func descrip path = do 
-    putStrLn "Please input the first proposition:\n" 
     text <- readFile path 
     case parse (many prop) path text of 
         (Left e) -> do 
-            putStrLn "Error: fail in parsing the text into two propositions!\n"
+            putStrLn "Error: fail in parsing the text into two propositions!"
             print e 
+            putStrLn ""
             exitSuccess 
         (Right ps) -> 
             if length ps < 2 then 
-                putStrLn $ printf "ERROR: need two propositions, but found %d." (length ps)
+                putStrLn $ printf "ERROR: need two propositions, but found %d.\n" (length ps)
             else do 
                 let (a:(b:_)) = ps
                 if func a b then 
-                    putStrLn $ printf "TRUE: The 2nd proposition IS %s of the 1st proposition." descrip
+                    putStrLn $ printf "TRUE: The 2nd proposition IS %s of the 1st proposition.\n" descrip
                 else 
-                    putStrLn $ printf "FALSE: The 2nd proposition IS NOT %s of the 1st proposition." descrip
+                    putStrLn $ printf "FALSE: The 2nd proposition IS NOT %s of the 1st proposition.\n" descrip
 
 -- 读取一个文件，解析为证明过程，并判断是否正确
 validateJudge path = do 
     text <- readFile path 
     case parse prove path text  of 
         (Left e) -> do 
-            putStrLn "Error parsing a proof!\n"
+            putStrLn "Error parsing a proof!"
             print e 
+            putStrLn ""
             exitSuccess 
         (Right parsedText) -> do 
             case validate parsedText of 
                 (True, _) -> do 
-                    putStrLn $ printf "TRUE: The proof in \"%s\" IS valid." path 
+                    putStrLn $ printf "TRUE: The proof in \"%s\" IS valid.\n" path 
                 (False, msg) -> do 
-                    putStrLn $ printf "FALSE: The proof in \"%s\" IS NOT valid.\n%s" path msg 
+                    putStrLn $ printf "FALSE: The proof in \"%s\" IS NOT valid.\n%s\n" path msg 
 
 syntaxError s = do 
-    putStrLn $ printf "ERROR: unknwon command %s" s
+    putStrLn $ printf "ERROR: unknwon command %s\n" s
 
 helpInfo = putStrLn
   "Usage: logic command path\n\
