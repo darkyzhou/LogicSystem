@@ -1,0 +1,6 @@
+Argument: ~(p /\ q), q \/ r, ~r 
+Conclusion: ~p
+
+Proof:
+
+1.		

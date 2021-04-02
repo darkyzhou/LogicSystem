@@ -73,26 +73,26 @@ conjunctiveNorm p = map helper $ filter (not . (`eval` p)) (substs p)
 
 -- ********************************************
 -- 证明过程验证库函数
--- (aurgument::[Prop], Conclusion::Prop, proveStep::[(Prop, rule, [])])
+-- (aurgument::[Prop], Conclusion::Prop, proveStep::[([Prop], Prop, rule, [])])
 
-validate :: ([Prop], Prop, [(Prop, String, [Int])]) -> (Bool, String) 
-validate (arg, conclusion, steps) = if conclusion /= (\(a, _, _) -> a) (last steps) then (False, "Cannot get the conclusion from the final step.")
-                                    else validateSteps arg steps [] 0
+validate :: ([Prop], Prop, [([Prop], Prop, String, [Int])]) -> (Bool, String) 
+validate (arg, conclusion, steps) = if (arg, conclusion) /= (\(a, b, _, _) -> (a, b)) (last steps) then 
+                                    (False, "The final step does NOT fit the form that deducing \"Conclusion\" from \"Argument\".")
+                                    else 
+                                    validateSteps steps 0
 
-validateSteps :: [Prop] -> [(Prop, String, [Int])] -> [Prop] -> Int -> (Bool, String) 
-validateSteps arg steps result k 
+validateSteps :: [([Prop], Prop, String, [Int])] -> Int -> (Bool, String) 
+validateSteps steps k 
     | k == length steps = (True, "") 
-    | otherwise = case validateStep arg curStep result of 
-                (True, "")   -> validateSteps arg steps (result++[curConclusion]) (k+1)
-                (False, msg) -> (False, printf "Fail in step %d. The reason is\n%s" (k+1) msg)
+    | otherwise = case validateStep (take (k-1) steps) curStep of 
+                (True, "")   -> validateSteps steps (k+1)
+                (False, msg) -> (False, printf "Fail in validating step %d.\n%s" (k+1) msg)
     where curStep = steps!!k 
-          curConclusion = (\(a, _, _) -> a) curStep 
 
-validateStep :: [Prop] -> (Prop, String, [Int]) -> [Prop] -> (Bool, String) 
-validateStep arg (conclusion, rule, param) result 
-    | rule == "prem" = if not $ null param then (False, printf "\"%s\": need no parameter, but found %d." rule (length param))
-                    else if prem arg conclusion then (True, "")
-                    else (False, "\"prem\": cannot deduce the given proposition.")
+validateStep :: [([Prop], Prop, String, [Int])] -> ([Prop], Prop, String, [Int]) -> (Bool, String) 
+validateStep steps (argument, conclusion, rule, param)
+    | rule == "prem" = func0 prem
+    | rule == "premi" = func1 premi
     | rule == "preme" = func2 preme
     | rule == "ti" = func0 ti
     | rule == "fi" = func0 fi
@@ -100,6 +100,7 @@ validateStep arg (conclusion, rule, param) result
     | rule == "ore" = func2 ore
     | rule == "andi" = func2 andi 
     | rule == "ande" = func1 ande 
+    | rule == "impli" = func1 impli
     | rule == "imple" = func2 imple 
     | rule == "ni" = func2 ni 
     | rule == "nni" = func1 nni 
@@ -108,29 +109,29 @@ validateStep arg (conclusion, rule, param) result
     | rule == "equive" = func1 equive
     | otherwise = (False, printf "Unknown rule: \"%s\"" rule)
 
-    where p1 = getParam result param 0
-          p2 = getParam result param 1
-          biCall func p1 p2 c = func p1 p2 c || func p2 p1 c
+    where p1 = getParam steps param 0
+          p2 = getParam steps param 1
+          biCall func p1 p2 arg c = func p1 p2 arg c || func p2 p1 arg c
           func0 f 
             | not $ null param = (False, printf "\"%s\": need no parameter, but found %d." rule (length param))
-            | f conclusion = (True, "")
+            | f argument conclusion = (True, "")
             | otherwise = (False, printf "\"%s\": found invalid parameter(s)." rule)
           func1 f 
             | length param /= 1 = (False, printf "\"%s\": need 1 parameter, but found %d." rule (length param))
             | otherwise = case p1 of 
-                (Just a) -> if f a conclusion then (True, "") 
+                (Just a) -> if f a argument conclusion then (True, "") 
                             else (False, printf "\"%s\": cannot deduce the given proposition." rule)
                 _        -> (False, printf "\"%s\": found invalid parameter(s)." rule)
           func2 f 
             | length param /= 2 = (False, printf "\"%s\": need 2 parameters, but found %d." rule (length param))
             | otherwise = case (p1, p2) of 
-                (Just a, Just b) -> if biCall f a b conclusion then (True, "") 
+                (Just a, Just b) -> if biCall f a b argument conclusion then (True, "") 
                                     else (False, printf "\"%s\": cannot deduce the given proposition." rule)
                 _                -> (False, printf "\"%s\": found invalid parameter(s)." rule)
     
     
-getParam result param k 
-    | (k<length param) && (idx>=0) && (idx<length result) = Just (result !! idx)
+getParam steps param k 
+    | (k<length param) && (idx>=0) && (idx<length steps) = Just ((\(a, b, _, _) -> (a, b))(steps !! idx))
     | otherwise = Nothing 
     where idx = (param!!k) - 1 
 
@@ -139,54 +140,66 @@ getParam result param k
 prem :: [Prop] -> Prop -> Bool
 prem arg p = p `elem` arg
 
-preme :: Prop -> Prop -> Prop -> Bool 
-preme (Imply pa pb) (Imply qa qb) t = (pa == Not pb) && (pb == qb) && (t == pb)
-preme _ _ _ = False
+premi :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+premi (pre1, c1) pre c = (pre1 == init pre) && (c1 == c)
 
-ti :: Prop -> Bool 
-ti (Const True) = True 
-ti _ = False 
+preme :: ([Prop], Prop) -> ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+preme (pre1, c1) (pre2, c2) pre c = (ip1 == ip2) && (Not lp1 == lp2) && (c1 == c2) && (pre == ip1) && (c1 == c) 
+    where ip1 = init pre1 
+          ip2 = init pre2 
+          lp1 = last pre1 
+          lp2 = last pre2
 
-fi :: Prop -> Bool 
-fi (Not (Const False)) = True 
-fi _ = False
+ti :: [Prop] -> Prop -> Bool 
+ti _ p = p == Const True
 
-ori :: Prop -> Prop -> Bool 
-ori a (Or b c) = (a==b) || (a==c)
-ori _ _ = False 
+fi :: [Prop] -> Prop -> Bool 
+fi _ p = p == Not (Const False)
 
-ore :: Prop -> Prop -> Prop -> Bool 
-ore (Imply a b) (Imply c d) e = (b==d) && ((Imply (Or a c) b)==e)
-ore _ _ _ = False 
+ori :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+ori (pre1, c1) pre (Or a b) = (pre1==pre) && ((c1==a) || (c1==b))
+ori _ _ _ = False 
 
-andi :: Prop -> Prop -> Prop -> Bool 
-andi a b (And c d) = (a==c) && (b==d)
-andi _ _ _ = False 
+ore :: ([Prop], Prop) -> ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+ore (pre1, c1) (pre2, c2) pre c = (ip1==ip2) && (c1==c2) && (c1==c) && (ip1==ip) && 
+                                  ((Or lp1 lp2 == lp) || (Or lp2 lp1 == lp))
+    where ip1 = init pre1 
+          ip2 = init pre2 
+          lp1 = last pre1 
+          lp2 = last pre2
+          ip = init pre 
+          lp = last pre
 
-ande :: Prop -> Prop -> Bool 
-ande (And a b) c = (a==c) || (b==c)
-ande _ _ = False 
+andi :: ([Prop], Prop) -> ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+andi (pre1, c1) (pre2, c2) pre c = (pre1==pre2) && (pre1==pre) && ((And c1 c2 == c) || (And c2 c1 == c))
 
-imple :: Prop -> Prop -> Prop -> Bool
-imple a (Imply b c) d = (a==b) && (c==d)
-imple _ _ _ = False 
+ande :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+ande (pre1, And a b) pre c = (pre1==pre) && ((a==c) || (b==c))
+ande _ _ _ = False 
 
-ni :: Prop -> Prop -> Prop -> Bool
-ni (Imply a b) (Not c) (Not d) = (c==b) && (a==d)
-ni _ _ _ = False 
+impli :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+impli (pre1, c1) pre c = (init pre1 == pre) && (Imply (last pre1) c1 == c)
 
-nni :: Prop -> Prop -> Bool 
-nni a (Not (Not b)) = a==b 
-nni _ _ = False
+imple :: ([Prop], Prop) -> ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+imple (pre1, c1) (pre2, c2) pre c = (pre1==pre) && (pre2==pre) && (Imply c1 c == c2)
 
-nne :: Prop -> Prop -> Bool
-nne (Not (Not a)) b = a==b 
-nne _ _ = False 
+ni :: ([Prop], Prop) -> ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+ni (pre1, c1) (pre2, c2) pre c = (pre1==pre2) && (Not c1 == c2) && (Not (last pre1) == c)
 
-equivi :: Prop -> Prop -> Prop -> Bool
-equivi (Imply a b) (Imply c d) (BiImply e f) = (a==d) && (b==c) && (e==a) && (f==b)
-equivi _ _ _ = False 
+nni :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+nni (pre1, c1) pre c = Not (Not c1) == c
 
-equive :: Prop -> Prop -> Bool
-equive (BiImply a b) (Imply c d) = ((a==c) && (b==d)) || ((a==d) && (b==c)) 
-equive _ _ = False 
+nne :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+nne (pre1, c1) pre c = Not (Not c) == c1
+
+equivi :: ([Prop], Prop) -> ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+equivi (pre1, c1) (pre2, c2) pre c = (ip1==ip2) && (lp1==c2) && (lp2==c1) && (ip1==pre) && 
+                                     (BiImply c1 c2 == c)
+    where ip1 = init pre1 
+          ip2 = init pre2 
+          lp1 = last pre1 
+          lp2 = last pre2
+
+equive :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+equive (pre1, BiImply a b) pre c = (pre1==pre) && ((Imply a b == c) || (Imply b a == c))
+equive _ _ _ = False

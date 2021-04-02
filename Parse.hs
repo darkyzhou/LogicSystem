@@ -54,25 +54,13 @@ argument = sepBy prop (char ',')
 
 conclusion = prop 
 
--- (结论，（规则，[前件]）)
-proveStep = (,,)
-    <$> (spaces *> many1 digit *> char '.' *> prop) 
+-- (前件，后件，规则，[参数])
+proveStep = (,,,)
+    <$> (spaces *> many1 digit *> char '.' *> many prop) 
+    <* string "|-" 
+    <*> prop 
     <* char '['
-    <*> many1 (noneOf ",]")
-    <*> (map (\x -> read x::Int) <$> many (char ',' *> many1 digit))
+    <*> many1 (noneOf " ]")
+    <*> (map (\x -> read x::Int) <$> many (char ' ' *> many1 digit))
     <* char ']'
-
-proveSteps = count 5 proveStep 
-    where proveStep = do 
-            spaces *> many1 digit *> char '.'
-            pre <- sepBy prop (char ',')
-            spaces *> string "!|-" *> spaces
-            p <- prop 
-            spaces *> string "["
-            rule <- many1 $ noneOf ",]"
-            d <- many (char ',' *> many1 digit)
-            string "]" <?> "no ]"
-            return (pre, p, rule, [read x::Int | x <- d])
-
-
 

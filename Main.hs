@@ -12,14 +12,20 @@ main = do
     args <- getArgs
     if null args then 
         putStrLn "ERROR: found no argument.\n"
-    else if (head args /= "help") && (length args < 2) then 
-        putStrLn $ printf "ERROR: need 2 arguments, but found %d.\n" (length args)
     else 
         case head args of 
-            "equiv" -> equivJudge (args!!1)
-            "dnorm" -> normJudge disjunctiveNormValidate "the principal disjunctive normal form" (args!!1)
-            "cnorm" -> normJudge conjunctiveNormValidate "the principal conjunctive normal form" (args!!1)
-            "validate" -> validateJudge (args!!1)
+            "equiv" -> if length args < 2 then 
+                putStrLn $ printf "ERROR: need 2 arguments, but found %d.\n" (length args)
+                else equivJudge (args!!1)
+            "dnorm" -> if length args < 2 then 
+                putStrLn $ printf "ERROR: need 2 arguments, but found %d.\n" (length args)
+                else normJudge disjunctiveNormValidate "the principal disjunctive normal form" (args!!1)
+            "cnorm" -> if length args < 2 then 
+                putStrLn $ printf "ERROR: need 2 arguments, but found %d.\n" (length args)
+                else normJudge conjunctiveNormValidate "the principal conjunctive normal form" (args!!1)
+            "validate" -> if length args < 2 then 
+                putStrLn $ printf "ERROR: need 2 arguments, but found %d.\n" (length args)
+                else validateJudge (args!!1)
             "help" -> helpInfo
             s -> syntaxError s
 
@@ -78,12 +84,13 @@ validateJudge path = do
                     putStrLn $ printf "FALSE: The proof in \"%s\" IS NOT valid.\n%s\n" path msg 
 
 syntaxError s = do 
-    putStrLn $ printf "ERROR: unknwon command %s\n" s
+    putStrLn $ printf "ERROR: unknwon command \"%s\".\nTry \"logic help\" to get help info.\n" s
 
 helpInfo = putStrLn
-  "Usage: logic command path\n\
+  "Usage: logic command [path]\n\
   \\n\
   \logic equiv path         Check if the given two propositions are equivalent\n\
   \logic dnorm path         Check if the 2nd proposition is the principal conjunctive normal form of the 1st one\n\
   \logic cnorm path         Check if the 2nd proposition is the principal disjunctive normal form of the 1st one\n\
-  \logic validate path      Check if the given proof is valid\n"
+  \logic validate path      Check if the given proof is valid\n\
+  \logic help               Output this message\n"
