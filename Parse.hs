@@ -25,15 +25,17 @@ varProp = helper <$> anyChar
           helper 'F' = Const False 
           helper c = Var [c]
 
-propOperator = strToConstructor <$> choice [string "/\\"
-                                          , string "\\/"
-                                          , string "->"
-                                          , string "<->"
+propOperator = strToConstructor <$> choice [try (string "/\\")
+                                          , try (string "\\/")
+                                          , try (string "->")
+                                          , try (string "<->")
                                           ]
     where strToConstructor "/\\" = And
           strToConstructor "\\/" = Or
           strToConstructor "->" = Imply 
           strToConstructor "<->" = BiImply 
+
+comment = string "\\\\" *> manyTill anyChar eol *> spaces
 
 eol =   try (string "\n\r")
     <|> try (string "\r\n")
@@ -45,10 +47,10 @@ eol =   try (string "\n\r")
 -- (aurgument::[Prop], Conclusion::Prop, proveStep::[([Prop], Prop, rule, [])])
 
 prove = (,,) 
-    <$> (spaces *> string "Argument:" *> argument) 
-    <*> (spaces *> string "Conclusion:" *> conclusion) 
-    <*> (spaces *> string "Proof:" *> many1 (proveStep <* spaces))
-    -- <* (spaces *> string "Qed.")
+    <$> (spaces *> many comment *> string "Premises:" *> argument) 
+    <*> (spaces *> many comment *> string "Conclusion:" *> conclusion) 
+    <*> (spaces *> many comment *> string "Proof:" *> spaces *> many comment
+                *> many1 (proveStep <* spaces <* many comment))
 
 argument = sepBy prop (char ',')
 
@@ -61,6 +63,6 @@ proveStep = (,,,)
     <*> prop 
     <* char '['
     <*> many1 (noneOf " ]")
-    <*> (map (\x -> read x::Int) <$> many (char ' ' *> many1 digit))
+    <*> (map (\x -> read x::Int) <$> many (spaces *> many1 digit))
     <* char ']'
 

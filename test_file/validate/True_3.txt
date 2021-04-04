@@ -1,4 +1,4 @@
-Argument:  p -> (q -> s), ~r \/ p, q 
+Premises:  p -> (q -> s), ~r \/ p, q 
 Conclusion:  r -> s
 
 Proof:
@@ -7,7 +7,7 @@ Proof:
 2.	p -> (q -> s), ~r \/ p, q, r	|-	~r \/ p	 	[prem]
 3. 	p -> (q -> s), ~r \/ p, q, r	|- 	p		[orThree 2 1]
 4. 	p -> (q -> s), ~r \/ p, q, r	|- 	p -> (q -> s)	[prem]
-5.	p -> (q -> s), ~r \/ p, q, r	|- 	q -> s		[imple 3 4]
+5.	p -> (q -> s), ~r \/ p, q, r	|- 	q -> s		[imple  3  4]
 6.	p -> (q -> s), ~r \/ p, q, r	|- 	q		[prem]
 7.	p -> (q -> s), ~r \/ p, q, r	|- 	s		[imple 5 6]
 8.	p -> (q -> s), ~r \/ p, q	|- 	r -> s		[impli 7]		

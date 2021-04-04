@@ -1,4 +1,4 @@
-Argument: q -> p, q <-> s, s <-> t, t  /\  r
+Premises: q -> p, q <-> s, s <-> t, t  /\  r
 Conclusion: p/\q
 
 Proof:

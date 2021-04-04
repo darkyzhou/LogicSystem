@@ -1,4 +1,4 @@
-Argument:  a, b, ~b
+Premises:  a, b, ~b
 Conclusion:  a
 
 Proof:

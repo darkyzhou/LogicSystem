@@ -77,7 +77,7 @@ conjunctiveNorm p = map helper $ filter (not . (`eval` p)) (substs p)
 
 validate :: ([Prop], Prop, [([Prop], Prop, String, [Int])]) -> (Bool, String) 
 validate (arg, conclusion, steps) = if (arg, conclusion) /= (\(a, b, _, _) -> (a, b)) (last steps) then 
-                                    (False, "The final step does NOT fit the form that deducing \"Conclusion\" from \"Argument\".")
+                                    (False, "The final step does NOT fit the form that deducing \"Conclusion\" from \"Premises\".")
                                     else 
                                     validateSteps steps 0
 

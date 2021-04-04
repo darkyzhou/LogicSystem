@@ -1,14 +1,22 @@
-Argument:  p -> (q -> s), ~r \/ p, q 
-Conclusion:  r -> s
+Premises:  p -> (q -> s), ~r \/ p, q 	\\ comment
+Conclusion:  r -> s		\\ comment
+
+\\comment
 
 Proof:
 
-1.	p -> (q -> s), ~r \/ p, q, r	|-	r		[prem]
+\\comment
+\\comment
+
+1.	p -> (q -> s), ~r \/ p, q, r	|-	r		[prem]				\\ comment 
 2.	p -> (q -> s), ~r \/ p, q, r	|-	~r \/ p	 	[prem]
 3.	p -> (q -> s), ~r \/ p, q, r	|- 	r -> p		[orToImply 2]
 4. 	p -> (q -> s), ~r \/ p, q, r	|- 	p		[imple 3 1]
 5. 	p -> (q -> s), ~r \/ p, q, r	|- 	p -> (q -> s)	[prem]
-6.	p -> (q -> s), ~r \/ p, q, r	|- 	q -> s		[imple 4 5]
+6.	p -> (q -> s), ~r \/ p, q, r	|- 	q -> s		[imple 4 5]			\\ comment 
 7.	p -> (q -> s), ~r \/ p, q, r	|- 	q		[prem]
 8.	p -> (q -> s), ~r \/ p, q, r	|- 	s		[imple 6 7]
-9.	p -> (q -> s), ~r \/ p, q	|- 	r -> s		[impli 8]		
+9.	p -> (q -> s), ~r \/ p, q	|- 	r -> s		[impli 8]    			\\comment 
+
+\\comment 
+
