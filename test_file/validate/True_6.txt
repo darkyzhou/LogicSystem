@@ -1,0 +1,12 @@
+Premises: p -> ~q, ~r->p, q
+Conclusion: r
+
+Proof:
+
+1. p -> ~q, ~r->p, q |- q  [prem]
+2. p -> ~q, ~r->p, q |- p->~q [prem]
+3. p -> ~q, ~r->p, q |- q->~p [contrapos 2]
+4. p -> ~q, ~r->p, q |- ~p [imple 1 3]
+5. p -> ~q, ~r->p, q |- ~r->p [prem]
+6. p -> ~q, ~r->p, q |- ~p->r [contrapos 5]
+7. p -> ~q, ~r->p, q |- r [imple 4 6]

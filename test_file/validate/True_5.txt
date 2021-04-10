@@ -1,0 +1,13 @@
+Premises: p -> ~q, ~r->p, q
+Conclusion: r
+
+Proof:
+
+1. p -> ~q, ~r->p, q |- q  [prem]
+2. p -> ~q, ~r->p, q |- p->~q [prem]
+3. p -> ~q, ~r->p, q |- ~q\/~p [implyToOr 2]
+4. p -> ~q, ~r->p, q |- ~p   [ds 1 3]
+5. p -> ~q, ~r->p, q |- ~r -> p [prem]
+6. p -> ~q, ~r->p, q |- ~~r \/p [implyToOr 5]
+7. p -> ~q, ~r->p, q |- ~~r    [ds 4 6]
+8. p -> ~q, ~r->p, q |- r [nne 7]

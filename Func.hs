@@ -110,9 +110,10 @@ validateStep steps (argument, conclusion, rule, param)
     | rule == "equive" = func1 equive
     | rule == "implyToOr" = func1 implyToOr 
     | rule == "orToImply" = func1 orToImply
-    | rule == "orThree" = func2 orThree
+    | rule == "ds" = func2 ds
     | rule == "morgane" = func1 morgane
     | rule == "morgani" = func1 morgani
+    | rule == "contrapos" = func1 contrapos
     | otherwise = (False, printf "Unknown rule: \"%s\"" rule)
 
     where p1 = getParam steps param 0
@@ -220,14 +221,15 @@ implyToOr (pre1, Imply a b) pre c = (pre1==pre) && ((Or (Not a) b == c) || (Or b
 implyToOr _ _ _ = False 
 
 orToImply :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
-orToImply (pre1, Or (Not a) b) pre (Imply c d) = (pre1==pre) && (a==c) && (b==d)
+orToImply (pre1, Or (Not a) b) pre (Imply c d) = ((pre1==pre) && (a==c) && (b==d)) 
+                                                || orToImply (pre1, Or b (Not a)) pre (Imply c d)
 orToImply (pre1, Or b (Not a)) pre (Imply c d) = (pre1==pre) && (a==c) && (b==d)
 orToImply _ _ _ = False 
 
-orThree :: ([Prop], Prop) -> ([Prop], Prop) -> [Prop] -> Prop -> Bool 
-orThree (pre1, Or (Not a) b) (pre2, c) pre d = (pre1==pre2) && (pre1==pre) && (a==c) && (b==d)
-orThree (pre1, Or b (Not a)) (pre2, c) pre d = (pre1==pre2) && (pre1==pre) && (a==c) && (b==d)
-orThree _ _ _ _ = False 
+ds :: ([Prop], Prop) -> ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+ds (pre1, Or a b) (pre2, c) pre d = (pre1==pre2) && (pre1==pre) 
+                                && ((isEquiv a (Not c) && isEquiv b d) || (isEquiv b (Not c) && isEquiv a d))
+ds _ _ _ _ = False 
 
 morgani :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
 morgani (pre1, Not (Or a b)) pre c = (pre1==pre) && (And (Not a) (Not b) == c)
@@ -238,3 +240,6 @@ morgane :: ([Prop], Prop) -> [Prop] -> Prop -> Bool
 morgane (pre1, c) pre (Not (Or a b)) = (pre1==pre) && (And (Not a) (Not b) == c)
 morgane (pre1, c) pre (Not (And a b)) = (pre1==pre) && (Or (Not a) (Not b) == c)
 morgane _ _ _ = False 
+
+contrapos :: ([Prop], Prop) -> [Prop] -> Prop -> Bool 
+contrapos (pre1, Imply a b) pre (Imply c d) = (pre1==pre) && isEquiv (Not a) d && isEquiv (Not b) c

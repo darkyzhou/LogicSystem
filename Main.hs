@@ -77,6 +77,7 @@ validateJudge path = do
             putStrLn ""
             exitSuccess 
         (Right parsedText) -> do 
+            -- print $ unlines $ map show $ (\(_, _, a) -> a) parsedText
             case validate parsedText of 
                 (True, _) -> do 
                     putStrLn $ printf "TRUE: The proof in \"%s\" IS valid.\n" path 
