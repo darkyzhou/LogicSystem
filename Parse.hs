@@ -62,7 +62,9 @@ proveStep = (,,,)
     <* spaces <* string "|-" 
     <*> prop 
     <* char '['
-    <*> many1 (noneOf " ]")
-    <*> (map (\x -> read x::Int) <$> many (spaces *> many1 digit))
+    <* spaces
+    <*> many1 (noneOf " ]") 
+    <* spaces 
+    <*> (map (\x -> read x::Int) <$> many (many1 digit <* spaces))
     <* char ']'
 
