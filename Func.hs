@@ -75,12 +75,14 @@ conjunctiveNorm p = map helper $ filter (not . (`eval` p)) (substs p)
 -- 证明过程验证库函数
 -- (aurgument::[Prop], Conclusion::Prop, proveStep::[([Prop], Prop, rule, [])])
 
+-- 验证一个形式证明
 validate :: ([Prop], Prop, [([Prop], Prop, String, [Int])]) -> (Bool, String) 
 validate (arg, conclusion, steps) = if (arg, conclusion) /= (\(a, b, _, _) -> (a, b)) (last steps) then 
                                     (False, "The final step does NOT fit the form that deducing \"Conclusion\" from \"Premises\".")
                                     else 
                                     validateSteps steps 0
 
+-- 验证推理部分
 validateSteps :: [([Prop], Prop, String, [Int])] -> Int -> (Bool, String) 
 validateSteps steps k 
     | k == length steps = (True, "") 
@@ -89,6 +91,7 @@ validateSteps steps k
                 (False, msg) -> (False, printf "Fail in validating step %d.\n%s" (k+1) msg)
     where curStep = steps!!k 
 
+-- 验证一个推理步骤
 validateStep :: [([Prop], Prop, String, [Int])] -> ([Prop], Prop, String, [Int]) -> (Bool, String) 
 validateStep steps (argument, conclusion, rule, param)
     | rule == "prem" = func0 prem

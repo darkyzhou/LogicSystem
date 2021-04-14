@@ -21,7 +21,7 @@ data Prop = Const Bool
 
 type Subst = [(String, Bool)]
 
--- Define the way to show Prop.
+-- Prop类型输出
 instance Show Prop where
     show (Const True) = "T"
     show (Const False) = "F"
@@ -34,7 +34,7 @@ instance Show Prop where
     show (Imply a b) =  "(" ++ show a ++ "->" ++ show b ++")"
     show (BiImply a b) =  "(" ++ show a ++ "<->" ++ show b ++")"
 
--- Evaluate Prop with Subst.
+-- 接收一个Prop和相应的取值集合，判断Prop的取值
 eval :: Subst -> Prop -> Bool
 eval _ (Const b) = b
 eval s (Var a) = snd $ head $ dropWhile (\(x, _) -> x /= a) s
@@ -46,7 +46,7 @@ eval s (BiImply p q) = (eval_p && eval_q) || ((not eval_p) && (not eval_q))
     where eval_p = eval s p
           eval_q = eval s q
 
--- Get all variables of a Prop
+-- 获取一个Prop的所有命题变元
 vars :: Prop -> [String]
 vars (Const _) = []
 vars (Var v) = [v]
@@ -56,8 +56,8 @@ vars (Or p q) = nub(vars p ++ vars q)
 vars (Imply p q) = nub(vars p ++ vars q)
 vars (BiImply p q) = nub(vars p ++ vars q)
 
--- Get all possible substs of a prop
--- [[(String, Bool)]], one possible subst is a list.
+-- 获取一个Prop所有的可能的变元取值集合
+-- [[(String, Bool)]]
 substs :: Prop -> [Subst]
 substs p = helper $ vars p
     where helper [] = []
@@ -65,12 +65,11 @@ substs p = helper $ vars p
           helper (x : xs) = [(x, True) : s | s <- sxs] ++ [(x, False) : s | s <- sxs]
             where sxs = helper xs
 
--- Return true if the given prop is a tautology.
+-- 判断是否为永真式
 isTaut :: Prop -> Bool
 isTaut p = all (`eval` p) (substs p)
 
--- Return true if the two prop is equivalent.
--- To check if (x && y) || (~x && ~y) is always true.
+-- 判断两个命题是否等值
 isEquiv :: Prop -> Prop -> Bool
 isEquiv p q = isTaut $ BiImply p q
 
