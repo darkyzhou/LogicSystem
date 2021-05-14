@@ -184,7 +184,7 @@
 >
 > 2. 执行程序并获取结果
 >
->    ![equiv](.\doc\equiv.PNG)
+>    ![equiv](.\equiv.PNG)
 
 #### pcnf
 
@@ -199,7 +199,7 @@
 >
 > 2. 执行程序并获取结果
 >
->    ![norm](.\doc\norm.PNG)
+>    ![norm](.\norm.PNG)
 
 #### validate
 
@@ -225,7 +225,7 @@
 >
 > 2. 执行程序并获取结果
 >
->    ![validate](.\doc\validate.PNG)
+>    ![validate](.\validate.PNG)
 
 ## FAQ
 

@@ -1,0 +1,67 @@
+% 该文件使用 xelatex 命令可以编译通过
+\documentclass[12pt, a4paper]{article}
+\usepackage{fontspec}
+\usepackage[slantfont, boldfont]{xeCJK}
+
+% 设置英文字体
+\setmainfont{Microsoft YaHei}
+\setsansfont{Comic Sans MS}
+\setmonofont{Courier New}
+
+% 设置中文字体
+\setCJKmainfont{Microsoft YaHei}
+\setCJKmonofont{Source Code Pro}
+\setCJKsansfont{YouYuan}
+
+% 中文断行设置
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip = 0pt plus 1pt
+\renewcommand{\arraystretch}{2}
+\usepackage{makecell}
+
+\title{规则集}
+\date{}
+\begin{document}
+	\maketitle
+	\begin{center}
+		\begin{table}[htbp]
+			\centering
+			\caption{规则表（一）}
+			\begin{tabular}{|l|l|}
+				\hline 
+				\textbf{简称}    & \textbf{规则} \\ \hline
+				\textit{prem}  &  $\Gamma, A \vdash A$           \\ \hline
+				\textit{premi} &  If $\Gamma \vdash B$, then $\Gamma, A \vdash B$           \\ \hline
+				\textit{preme} & If $\Gamma, A \vdash B$ and $\Gamma, \neg A \vdash B$, then $\Gamma \vdash B$            \\ \hline
+				\textit{ti}    &  $\Gamma \vdash T$           \\ \hline
+				\textit{fi}    & $\Gamma \vdash \neg F$            \\ \hline
+				\textit{ori}   & If $\Gamma \vdash A$, then $\Gamma \vdash A \lor B, B \lor A$            \\ \hline
+				\textit{ore}   &  If $\Gamma, A\vdash C$ and $\Gamma, B \vdash C$, then $\Gamma, A \lor B \vdash C$           \\ \hline
+				\textit{andi}  &  If $\Gamma \vdash A$ and $\Gamma \vdash B$, then $\Gamma \vdash A \land B$           \\ \hline
+				\textit{ande}  & If $\Gamma \vdash A \land B$, then $\Gamma \vdash A, B$            \\ \hline
+				\textit{impli}  & If $\Gamma, A \vdash B$, then $\Gamma \vdash A \to B$            \\ \hline
+				\textit{imple}  & If $\Gamma \vdash A$ and $\Gamma \vdash A \to B$, then $\Gamma \vdash B$            \\ \hline
+			\end{tabular}
+		\end{table}
+		\begin{table}[htbp]
+			\centering
+			\caption{规则表（二）}
+			\begin{tabular}{|l|l|}
+				\hline 
+				\textbf{简称}    & \textbf{规则} \\ \hline
+				\textit{ni}  & If $\Gamma, A\vdash B$ and $\Gamma, A \vdash \neg B$, then $\Gamma  \vdash \neg A$            \\ \hline
+				\textit{ne}  & If $\Gamma \vdash B$ and $\Gamma \vdash \neg B$, then $\Gamma  \vdash A$             \\ \hline
+				\textit{nni}  & If $\Gamma \vdash A$, then $\Gamma  \vdash \neg\neg A$             \\ \hline
+				\textit{nne}  & If $\Gamma \vdash \neg\neg A$, then $\Gamma  \vdash A$            \\ \hline
+				\textit{equivi}  & If $\Gamma, A \vdash B$ and $\Gamma, B \vdash A$, then $\Gamma  \vdash A \leftrightarrow B$            \\ \hline
+				\textit{equive}  & If $\Gamma  \vdash A \leftrightarrow B$, then $\Gamma  \vdash A \rightarrow B, B \rightarrow A$            \\ \hline
+				\textit{implyToOr}  & If $\Gamma \vdash A \rightarrow B$, then $\Gamma  \vdash \neg A \lor B$            \\ \hline
+				\textit{orToImply}  & If $\Gamma  \vdash \neg A \lor B$, then $\Gamma \vdash A \rightarrow B$            \\ \hline
+				\textit{ds}  & If $\Gamma \vdash A$ and $\Gamma  \vdash \neg A \lor B$, then $\Gamma  \vdash B$            \\ \hline
+				\textit{morgani}  &  \makecell[l]{If $\Gamma  \vdash \neg (A \lor B)$, then $\Gamma \vdash \neg A \land \neg B$ \\ If $\Gamma  \vdash \neg (A \land B)$, then $\Gamma \vdash \neg A \lor \neg B$}           \\ \hline
+				\textit{morgane}  &  \makecell[l]{If $\Gamma  \vdash \neg A \land \neg B$, then $\Gamma \vdash \neg (A \lor B)$ \\ If $\Gamma  \vdash \neg A \lor \neg B$, then $\Gamma \vdash \neg (A \land B)$}           \\ \hline
+				\textit{contrapos}  &  \makecell[l]{If $\Gamma  \vdash A \rightarrow B$, then $\Gamma \vdash \neg B \rightarrow \neg A$}           \\ \hline
+			\end{tabular}
+		\end{table}
+	\end{center}
+\end{document}
